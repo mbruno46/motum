@@ -24,8 +24,11 @@ args = parser.parse_args()
 path = os.path.abspath(args.src)
 host = args.host
 
-_dst = os.popen(f'ssh {host} "echo {args.dst}" 2> /dev/null').read().strip()
-dst = os.path.join(_dst, os.path.basename(path) + '/').replace(' ','\ ')
+if host=='localhost':
+    dst = os.path.join(args.dst, os.path.basename(path) + '/').replace(' ','\ ')
+else:
+    _dst = os.popen(f'ssh {host} "echo {args.dst}" 2> /dev/null').read().strip()
+    dst = os.path.join(_dst, os.path.basename(path) + '/').replace(' ','\ ')
 
 verbose = args.verbose
 
@@ -38,7 +41,10 @@ def bandwidth_init():
     
     def inner():
         try:
-            tot = int(os.popen(f'ssh {host} "du -sk {dst}" 2> /dev/null').read().split()[0])
+            if host=='localhost':
+                tot = int(os.popen(f'du -sk {dst}').read().split()[0])
+            else:
+                tot = int(os.popen(f'ssh {host} "du -sk {dst}" 2> /dev/null').read().split()[0])
             if verbose:
                 print(f'[motum]: transferred size {tot/1024:.2f} MB')
             dt = time.time() - t0
@@ -54,7 +60,10 @@ class MoveTask:
         self.arg = arg
         
     def __call__(self):
-        cmd = ['rsync','-acz','-pgot',self.arg,'-e','ssh',f'{host}:{dst}']
+        if host=='localhost':
+            cmd = ['rsync','-acz','-pgot',self.arg,dst]
+        else:
+            cmd = ['rsync','-acz','-pgot',self.arg,'-e','ssh',f'{host}:{dst}']
         if verbose:
             print(f'[motum]: starting transfer of {self.arg}')
         t0 = time.time()

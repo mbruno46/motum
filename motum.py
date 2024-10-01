@@ -16,7 +16,7 @@ parser.add_argument("host")
 parser.add_argument("dst")
 parser.add_argument("-n","--parallel-streams",default=1,type=int)
 parser.add_argument("--timeout",default=1,type=int)
-parser.add_argument("-v","--verbose",action='store_true')
+parser.add_argument("-v","--verbose",default=0,type=int)
 parser.add_argument("--level",default=1,type=int)
 
 args = parser.parse_args()
@@ -45,7 +45,7 @@ def bandwidth_init():
                 tot = int(os.popen(f'du -sk {dst}').read().split()[0])
             else:
                 tot = int(os.popen(f'ssh {host} "du -sk {dst}" 2> /dev/null').read().split()[0])
-            if verbose:
+            if verbose>1:
                 print(f'[motum]: transferred size {tot/1024:.2f} MB')
             dt = time.time() - t0
             sys.stdout.write(f'\r[motum]: effective bandwidth {tot/dt/1024:.2f} MB/sec ; {int(tot/full*100): <3d} % completed')
@@ -64,8 +64,9 @@ class MoveTask:
             cmd = ['rsync','-acz','-pgot',self.arg,dst]
         else:
             cmd = ['rsync','-acz','-pgot',self.arg,'-e','ssh',f'{host}:{dst}']
-        if verbose:
+        if verbose>0:
             print(f'[motum]: starting transfer of {self.arg}')
+            print(f'[motum]: {" ".join(cmd)}')
         t0 = time.time()
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         p.stdout.close()

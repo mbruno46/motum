@@ -162,12 +162,9 @@ class CheckSumTask:
 
 def worker(q):
     while True:
-        if q.qsize()>1:
-            task = q.get()
-            task()
-            q.task_done()
-        else:
-            time.sleep(2)
+        task = q.get()
+        task()
+        q.task_done()
     
 queue = Queue()
 

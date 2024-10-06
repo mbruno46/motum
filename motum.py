@@ -42,7 +42,7 @@ def run_cmd(cmd, remote, parser = lambda x: x.read().rstrip()):
     return runner(cmd)
     
 def getsize(p, r):
-    return run_cmd(f'du -sb {p}', remote=r, parser = lambda x: int(x.read().split()[0]))
+    return run_cmd(f'du -sb {p}', remote = r, parser = lambda x: int(x.read().split()[0]))
 
 # checks if destination path exists
 if run_cmd(f'if [ -d {args.dst} ]; then echo "Y"; fi', remote=True)!='Y':
